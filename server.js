@@ -4,21 +4,19 @@ const multer = require('multer');
 const path = require('path');
 const fs = require("fs");
 const syncRequest = require("sync-request");
-const cors = require('cors'); // Import cors
+const cors = require('cors'); 
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware to enable CORS
-app.use(cors()); // Use CORS middleware
+app.use(cors());
 
-// Middleware to parse JSON requests
 app.use(bodyParser.json());
 
 // Set up multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/'); // Ensure this folder exists
+        cb(null, 'uploads/'); 
     },
     filename: (req, file, cb) => {
         cb(null, `${Date.now()}-${file.originalname}`); // Create a unique filename
@@ -50,10 +48,10 @@ if (!fs.existsSync(saveDirectory)) {
 
 app.post("/track", (req, res) => {
     const updateFile = (response, body, savePath) => {
-        if (body.status === 2 && body.url) { // Ensure a document URL is provided
+        if (body.status === 2 && body.url) {
             try {
-                const file = syncRequest("GET", body.url); // Fetch the document
-                fs.writeFileSync(savePath, file.getBody()); // Save the file
+                const file = syncRequest("GET", body.url);
+                fs.writeFileSync(savePath, file.getBody()); 
                 console.log(`Document saved successfully at ${savePath}`);
             } catch (error) {
                 console.error("Error saving document:", error);
@@ -61,7 +59,6 @@ app.post("/track", (req, res) => {
             }
         }
 
-        // Respond with no errors if document is saved
         response.json({ error: 0 });
     };
 
@@ -70,7 +67,7 @@ app.post("/track", (req, res) => {
     const savePath = `${saveDirectory}/${documentName}`;
 
     if (req.body.hasOwnProperty("status")) {
-        updateFile(res, req.body, savePath); // Process request directly
+        updateFile(res, req.body, savePath); 
     } else {
         // Handle the case where the body needs to be read manually
         let content = "";
@@ -84,16 +81,6 @@ app.post("/track", (req, res) => {
     }
 });
 
-// Handle the callback from OnlyOffice
-app.post('/url-to-callback', (req, res) => {
-    const { type, data } = req.body;
-
-    // Log the received data (you can also handle it according to your needs)
-    console.log('Received callback:', type, data);
-
-    // Send a response back to OnlyOffice
-    res.status(200).send('OK');
-});
 
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
